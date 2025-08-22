@@ -16,3 +16,5 @@ services:
         value: 1mY3rIU7ZQ_mpT3jopsLd_vfYcxlFz4DUzikL41UNPiU
       - key: GOOGLE_CREDENTIALS_PATH
         value: google-credentials.json
+      - key: GOOGLE_SHEETS_ENABLED
+        value: true

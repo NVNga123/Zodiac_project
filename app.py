@@ -7,6 +7,39 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 from config import config
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+def setup_google_credentials():
+    """Setup Google credentials from environment variable for production"""
+    try:
+        creds_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+        
+        if creds_json:
+            # Parse JSON string và ghi vào file
+            credentials_data = json.loads(creds_json)
+            
+            with open('google-credentials.json', 'w') as f:
+                json.dump(credentials_data, f, indent=2)
+            
+            print("✅ Google credentials file created from environment variable")
+            return True
+        else:
+            print("⚠️ No GOOGLE_CREDENTIALS_JSON found in environment variables")
+            return False
+            
+    except json.JSONDecodeError as e:
+        print(f"❌ Error parsing GOOGLE_CREDENTIALS_JSON: {e}")
+        return False
+    except Exception as e:
+        print(f"❌ Error setting up Google credentials: {e}")
+        return False
+
+# Setup credentials when app starts
+if os.environ.get('FLASK_ENV') == 'production':
+    setup_google_credentials()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -906,12 +939,19 @@ def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
+@app.route('/api/test-credentials')
+def test_credentials():
+    """Test endpoint để kiểm tra credentials setup"""
+    return jsonify({
+        "environment": os.environ.get('FLASK_ENV'),
+        "has_credentials_file": os.path.exists(app.config['GOOGLE_CREDENTIALS_PATH']),
+        "credentials_path": app.config['GOOGLE_CREDENTIALS_PATH'],
+        "google_sheets_enabled": app.config['GOOGLE_SHEETS_ENABLED'],
+        "has_sheet_id": bool(app.config.get('GOOGLE_SHEET_ID')),
+        "has_gemini_key": bool(app.config.get('GEMINI_API_KEY'))
+    })
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=port, debug=debug)
-
-# Thêm vào cuối file app.py
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
