@@ -268,22 +268,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Collect form data
             const formData = {
                 person1: {
-                    name: document.getElementById('name1').value,
-                    birthdate: document.getElementById('birth1').value,
-                    gender: document.getElementById('gender1').value,
-                    phone: document.getElementById('phone1').value,
-                    email: document.getElementById('email1').value,
-                    address: document.getElementById('address1').value,
-                    zodiacSign: getZodiacSign(document.getElementById('birth1').value)
+                    name: document.getElementById('name1')?.value || '',
+                    birthdate: document.getElementById('birth1')?.value || '',
+                    gender: document.getElementById('gender1')?.value || '',
+                    zodiacSign: getZodiacSign(document.getElementById('birth1')?.value || '')
                 },
                 person2: {
-                    name: document.getElementById('name2').value,
-                    birthdate: document.getElementById('birth2').value,
-                    gender: document.getElementById('gender2').value,
-                    phone: document.getElementById('phone2').value,
-                    email: document.getElementById('email2').value,
-                    address: document.getElementById('address2').value,
-                    zodiacSign: getZodiacSign(document.getElementById('birth2').value)
+                    name: document.getElementById('name2')?.value || '',
+                    birthdate: document.getElementById('birth2')?.value || '',
+                    gender: document.getElementById('gender2')?.value || '',
+                    zodiacSign: getZodiacSign(document.getElementById('birth2')?.value || '')
                 }
             };
 

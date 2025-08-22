@@ -705,16 +705,10 @@ def save_to_google_sheets(data):
             person1.get('name', ''),
             person1.get('birthdate', '') or person1.get('birth', ''),
             person1.get('gender', ''),
-            person1.get('phone', ''),
-            person1.get('email', ''),
-            person1.get('address', ''),
             person1.get('zodiacSign', ''),
             person2.get('name', ''),
             person2.get('birthdate', '') or person2.get('birth', ''),
             person2.get('gender', ''),
-            person2.get('phone', ''),
-            person2.get('email', ''),
-            person2.get('address', ''),
             person2.get('zodiacSign', ''),
             compatibility.get('compatibility_score', 0) if isinstance(compatibility, dict) else 0,
             str(compatibility.get('compatibility_level', '')) if isinstance(compatibility, dict) else str(compatibility)[:100]
@@ -725,8 +719,8 @@ def save_to_google_sheets(data):
             all_records = sheet.get_all_records()
             if len(all_records) == 0:
                 headers = [
-                    'Thời gian', 'Tên 1', 'Ngày sinh 1', 'Giới tính 1', 'SĐT 1', 'Email 1', 'Địa chỉ 1', 'Cung hoàng đạo 1',
-                    'Tên 2', 'Ngày sinh 2', 'Giới tính 2', 'SĐT 2', 'Email 2', 'Địa chỉ 2', 'Cung hoàng đạo 2',
+                    'Thời gian', 'Tên 1', 'Ngày sinh 1', 'Giới tính 1', 'Cung hoàng đạo 1',
+                    'Tên 2', 'Ngày sinh 2', 'Giới tính 2', 'Cung hoàng đạo 2',
                     'Điểm tương thích', 'Phân tích'
                 ]
                 sheet.insert_row(headers, 1)
