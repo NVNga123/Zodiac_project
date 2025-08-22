@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: zodiac-compatibility-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        value: AIzaSyALNmm8ZKBeVvr-m1RPKeKdbaXT8ofuxfE
+      - key: GOOGLE_SHEET_ID
+        value: 1mY3rIU7ZQ_mpT3jopsLd_vfYcxlFz4DUzikL41UNPiU
+      - key: GOOGLE_CREDENTIALS_PATH
+        value: google-credentials.json

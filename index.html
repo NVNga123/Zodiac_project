@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân Tích Cung Hoàng Đạo - Tình Duyên & Sản Phẩm Phù Hợp</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🔮 Phân Tích Cung Hoàng Đạo</h1>
+            <p class="subtitle">Khám phá tình duyên và tìm sản phẩm phù hợp cho bạn</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="intro">
+            <h2>Tìm hiểu mức độ hợp nhau giữa hai người</h2>
+            <p>Nhập thông tin của hai người để nhận được phân tích chi tiết về tính cách, độ tương thích và gợi ý sản phẩm phù hợp!</p>
+        </section>
+
+        <form id="zodiacForm" class="zodiac-form">
+            <div class="person-forms">
+                <div class="person-form">
+                    <h3>👤 Thông Tin Người Thứ Nhất</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name1">Họ và tên</label>
+                            <input type="text" id="name1" name="name1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="birth1">Ngày sinh</label>
+                            <input type="date" id="birth1" name="birth1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender1">Giới tính</label>
+                            <select id="gender1" name="gender1" required>
+                                <option value="">Chọn giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="phone1">Số điện thoại</label>
+                            <input type="tel" id="phone1" name="phone1" required>
+                        </div> -->
+                    </div>
+                    
+                </div>
+
+                <div class="person-form">
+                    <h3>👥 Thông Tin Người Thứ Hai</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name2">Họ và tên</label>
+                            <input type="text" id="name2" name="name2" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="birth2">Ngày sinh</label>
+                            <input type="date" id="birth2" name="birth2" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender2">Giới tính</label>
+                            <select id="gender2" name="gender2" required>
+                                <option value="">Chọn giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="phone2">Số điện thoại</label>
+                            <input type="tel" id="phone2" name="phone2" required>
+                        </div> -->
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="analyzeBtn">
+                    <span id="analyzeText">🔮 Phân Tích Ngay</span>
+                    <span id="loadingText" style="display: none;">⏳ Đang phân tích...</span>
+                </button>
+            </div>
+        </form>
+
+        <div id="results" class="results-section" style="display: none;">
+            <div class="results-container">
+                <h2>📊 Kết Quả Phân Tích</h2>
+                <div id="analysisContent"></div>
+                <div id="productRecommendations"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Phân Tích Cung Hoàng Đạo. Tất cả quyền được bảo lưu.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
