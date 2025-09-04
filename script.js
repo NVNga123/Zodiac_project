@@ -48,11 +48,15 @@ function displayResults(data) {
         return;
     }
     
-    const score = compatibility.compatibility_score || 50;
+    // Get tier instead of score
+    const tier = compatibility.compatibility_tier || compatibility.tier_description || "Có sự khác biệt, cần thấu hiểu nhiều hơn";
     let levelClass = 'level-low';
-    if (score >= 85) levelClass = 'level-perfect';
-    else if (score >= 70) levelClass = 'level-high';
-    else if (score >= 40) levelClass = 'level-medium';
+    
+    // Set level class based on tier
+    if (tier === "Hợp duyên trời định") levelClass = 'level-perfect';
+    else if (tier === "Có duyên cần thời gian vun đắp") levelClass = 'level-high';
+    else if (tier === "Có duyên nhưng cần nỗ lực nhiều") levelClass = 'level-medium';
+    else levelClass = 'level-low';
     
     const resultContainer = document.getElementById('analysisContent');
     
@@ -227,10 +231,10 @@ function displayResults(data) {
     resultContainer.innerHTML = `
         <div class="result-container ${levelClass}">
             <div class="compatibility-header">
-                <div class="score-circle">
-                    <span class="score">${score}%</span>
+                <div class="tier-badge ${levelClass}">
+                    <span class="tier-text">${tier}</span>
                 </div>
-                <h2 class="compatibility-title">${compatibility.compatibility_level || compatibility.title || 'Phân tích tương thích'}</h2>
+                <h2 class="compatibility-title">Phân tích tương thích cung hoàng đạo</h2>
             </div>
             
             <div class="personality-section">

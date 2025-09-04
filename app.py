@@ -343,208 +343,167 @@ def create_fallback_horoscope(sign):
         "current_date": datetime.now().strftime('%B %d, %Y')
     }
 
+def calculate_compatibility_score(sign1, sign2):
+    """Calculate compatibility score based on element and modality compatibility"""
+    
+    # Element mapping
+    element_map = {
+        'aries': 'fire', 'leo': 'fire', 'sagittarius': 'fire',
+        'taurus': 'earth', 'virgo': 'earth', 'capricorn': 'earth', 
+        'gemini': 'air', 'libra': 'air', 'aquarius': 'air',
+        'cancer': 'water', 'scorpio': 'water', 'pisces': 'water'
+    }
+    
+    # Modality mapping  
+    modality_map = {
+        'aries': 'cardinal', 'cancer': 'cardinal', 'libra': 'cardinal', 'capricorn': 'cardinal',
+        'taurus': 'fixed', 'leo': 'fixed', 'scorpio': 'fixed', 'aquarius': 'fixed',
+        'gemini': 'mutable', 'virgo': 'mutable', 'sagittarius': 'mutable', 'pisces': 'mutable'
+    }
+    
+    element1 = element_map.get(sign1.lower(), 'fire')
+    element2 = element_map.get(sign2.lower(), 'fire') 
+    modality1 = modality_map.get(sign1.lower(), 'cardinal')
+    modality2 = modality_map.get(sign2.lower(), 'cardinal')
+    
+    # Base score by element compatibility
+    base_score = 50  # default
+    
+    # Element compatibility rules
+    if element1 == element2:
+        # Same element - high compatibility
+        base_score = 82
+    elif (element1 == 'fire' and element2 == 'air') or (element1 == 'air' and element2 == 'fire'):
+        # Fire + Air (complementary) - very high
+        base_score = 90
+    elif (element1 == 'earth' and element2 == 'water') or (element1 == 'water' and element2 == 'earth'):
+        # Earth + Water (complementary) - very high
+        base_score = 88
+    elif (element1 == 'fire' and element2 == 'water') or (element1 == 'water' and element2 == 'fire'):
+        # Fire + Water (opposing) - challenging
+        base_score = 35
+    elif (element1 == 'earth' and element2 == 'air') or (element1 == 'air' and element2 == 'earth'):
+        # Earth + Air (square) - moderate challenge
+        base_score = 45
+    else:
+        # Other combinations - neutral
+        base_score = 55
+    
+    # Modality adjustments
+    modality_adjustment = 0
+    
+    if (modality1 == 'cardinal' and modality2 == 'mutable') or (modality1 == 'mutable' and modality2 == 'cardinal'):
+        modality_adjustment = 8
+    elif (modality1 == 'fixed' and modality2 == 'mutable') or (modality1 == 'mutable' and modality2 == 'fixed'):
+        modality_adjustment = 5
+    elif modality1 == 'cardinal' and modality2 == 'cardinal':
+        modality_adjustment = -2
+    elif modality1 == 'fixed' and modality2 == 'fixed':
+        modality_adjustment = -5
+    # Cardinal + Fixed = 0, Mutable + Mutable = +3
+    elif modality1 == 'mutable' and modality2 == 'mutable':
+        modality_adjustment = 3
+    
+    final_score = max(0, min(100, base_score + modality_adjustment))
+    return final_score
+
+def get_compatibility_tier(score):
+    """Get compatibility tier based on score according to instruction"""
+    if score >= 85:
+        return "Hợp duyên trời định"
+    elif score >= 70:
+        return "Có duyên, cần thời gian vun đắp"  
+    elif score >= 40:
+        return "Có duyên nhưng cần nỗ lực nhiều"
+    else:
+        return "Có sự khác biệt, cần thấu hiểu nhiều hơn"
+
+def get_tier_description(tier):
+    """Get tier description according to instruction"""
+    descriptions = {
+        "Hợp duyên trời định": "Hai bạn như mảnh ghép vừa khít – dễ đồng điệu cả trong tính cách lẫn cảm xúc. Chỉ cần một cái nhìn cũng đủ hiểu nhau.",
+        "Có duyên, cần thời gian vun đắp": "Giữa hai bạn có sự hấp dẫn nhau tự nhiên, nhưng vẫn cần trải nghiệm, chia sẻ thêm về suy nghĩ và cảm xúc để gắn bó lâu dài.",
+        "Có duyên nhưng cần nỗ lực nhiều": "Sự khác biệt có thể dẫn đến mâu thuẫn, nhưng nếu đủ kiên nhẫn thì đây lại là cơ hội để học cách dung hòa và trưởng thành, biết chấp nhận và tôn trọng sự khác biệt của người khác.",
+        "Có sự khác biệt, cần thấu hiểu nhiều hơn": "Hai bạn có nhiều điểm khác biệt, nhưng chính điều đó có thể giúp mỗi người soi chiếu và hiểu rõ bản thân hơn, biết rằng mình cần điều chỉnh gì để hài hòa mối quan hệ."
+    }
+    return descriptions.get(tier, "")
+
 def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horoscope2):
-    """Use AI to analyze compatibility between two people based on detailed scenarios"""
+    """Use OpenAI to analyze compatibility based on detailed instruction scenarios"""
     
+    # Calculate score using the new formula
+    sign1 = person1_data['zodiacSign'].lower()
+    sign2 = person2_data['zodiacSign'].lower()
+    compatibility_score = calculate_compatibility_score(sign1, sign2)
+    compatibility_tier = get_compatibility_tier(compatibility_score)
+    tier_description = get_tier_description(compatibility_tier)
+    
+    # Build detailed prompt based on instruction
     prompt = f"""
-    Bạn là một chuyên gia chiêm tinh và tâm lý học có 20 năm kinh nghiệm. Hãy phân tích sâu sắc và chi tiết mối quan hệ giữa 2 người:
+    Bạn là chuyên gia chiêm tinh chuyên nghiệp với 20 năm kinh nghiệm. Hãy phân tích tương thích giữa 2 người theo CHÍNH XÁC kịch bản "{compatibility_tier}":
 
-    👤 THÔNG TIN NGƯỜI 1:
-    - Tên: {person1_data['name']}
-    - Cung hoàng đạo: {person1_data['zodiacSign']} 
-    - Giới tính: {person1_data['gender']}
-    - Ngày sinh: {person1_data['birth']}
-    - Horoscope hôm nay: {horoscope1['description']}
+    Người 1: {person1_data['name']} - Cung {person1_data['zodiacSign']} - {person1_data['gender']}
+    Người 2: {person2_data['name']} - Cung {person2_data['zodiacSign']} - {person2_data['gender']}
+
+    Kết quả đánh giá: {compatibility_tier}
+    Mô tả: {tier_description}
     
-    👤 THÔNG TIN NGƯỜI 2:
-    - Tên: {person2_data['name']}
-    - Cung hoàng đạo: {person2_data['zodiacSign']}
-    - Giới tính: {person2_data['gender']} 
-    - Ngày sinh: {person2_data['birth']}
-    - Horoscope hôm nay: {horoscope2['description']}
+    VIẾT PHÂN TÍCH CHI TIẾT THEO CHÍNH XÁC KỊCH BẢN "{compatibility_tier}" với cấu trúc:
 
-    🎯 YÊU CẦU PHÂN TÍCH SIÊU CHI TIẾT:
+    1. ZODIAC_SUMMARY: Mô tả chi tiết về tính cách cung hoàng đạo của từng người dựa trên thông tin nguồn (đoạn văn 200-300 chữ)
 
-    1. Tính compatibility_score từ 0-100 dựa trên sự tương thích thực tế của 2 cung hoàng đạo.
+    2. PERSONALITY_ANALYSIS: Phân tích chi tiết, vô cùng chi tiết về tính cách và cung hoàng đạo của từng người (đoạn văn liền mạch 200-300 chữ mỗi người)
 
-    2. Dựa vào điểm số, viết phân tích SIÊU CHI TIẾT theo format:
+    3. DIFFERENCES (theo tier): 
+    - Tier "Có duyên, cần thời gian vun đắp": điểm khác biệt không quá gay gắt, dễ dung hòa với ví dụ cụ thể (200-300 chữ mỗi người)
+    - Tier "Có duyên nhưng cần nỗ lực nhiều": điểm khác biệt có thể sửa được để cùng phát triển với ví dụ cụ thể (200-300 chữ)  
+    - Tier "Có sự khác biệt, cần thấu hiểu nhiều hơn": khác biệt về trọng tâm, giá trị, quan điểm sống với ví dụ cụ thể (200-300 chữ)
 
-    ■ 85-100%: "Hai bạn sinh ra để dành cho nhau, dù là trong đời sống, tình cảm hay công việc"
-    ■ 70-84%: "Hai bạn có tiềm năng gắn kết lâu dài"  
-    ■ 40-69%: "Người này sẽ giúp bạn học cách chấp nhận và tôn trọng sự khác biệt của người khác"
-    ■ <40%: "Người này sẽ giúp bạn có góc nhìn rõ hơn về bản thân, rằng mình cần điều chỉnh gì để cân bằng mối quan hệ"
+    4. STRENGTHS: 
+    - Tier "Hợp duyên trời định": tương đồng tính cách, giá trị sống (200-300 chữ)
+    - Tier "Có duyên, cần thời gian vun đắp": tương đồng tính cách, giá trị sống (200-300 chữ)
+    - Tier "Có duyên nhưng cần nỗ lực nhiều": lợi ích khi cân bằng tính cách đối lập với ví dụ (200-300 chữ)
+    - Tier "Có sự khác biệt, cần thấu hiểu nhiều hơn": bài học và giá trị nhận được với ví dụ (200-300 chữ)
 
-    📋 CHI TIẾT CÁC PHẦN PHÂN TÍCH (MỖI PHẦN TỪ 200-400 TỪ):
+    5. LIFE_BENEFITS: Vẽ bối cảnh chi tiết về lợi ích trong đời sống (200-300 chữ)
+    6. WORK_BENEFITS: Vẽ bối cảnh chi tiết về lợi ích trong công việc (200-300 chữ)
+    7. LOVE_BENEFITS: Vẽ bối cảnh chi tiết về lợi ích trong tình cảm (200-300 chữ)
 
-    🌟 zodiac_summary: Mô tả ngắn gọn về đặc điểm cơ bản của 2 cung hoàng đạo, yếu tố chi phối (hỏa, thổ, kim, mộc), tính cách cốt lõi.
-
-    🧠 personality_analysis: Phân tích VÔ CÙNG CHI TIẾT tính cách của từng người:
-    - Cách họ suy nghĩ và xử lý cảm xúc
-    - Giá trị sống và mục tiêu nhân sinh  
-    - Phong cách giao tiếp và thể hiện bản thân
-    - Cách họ yêu thương và quan tâm người khác
-    - Điểm mạnh và điểm yếu tính cách
-    - Nhu cầu cảm xúc và tâm lý sâu thẳm
-    (Viết thành đoạn văn liền mạch, sinh động, cụ thể)
-
-    ⚖️ differences: (Nếu score < 85%) Phân tích sâu về sự khác biệt:
-    - Khác biệt trong cách nhìn nhận cuộc sống
-    - Khác biệt trong cách thể hiện tình cảm
-    - Khác biệt trong ưu tiên và mục tiêu
-    - Những tình huống cụ thể có thể xảy ra xung đột
-    - Nguyên nhân sâu xa dẫn đến khác biệt
-    (Đưa ra ví dụ cụ thể, tình huống thực tế)
-
-    💪 strengths: Phân tích chi tiết điểm mạnh khi kết nối:
-    - Những điểm tương đồng về giá trị và lý tưởng
-    - Cách họ bổ trợ và hỗ trợ nhau
-    - Những moments đẹp trong mối quan hệ
-    - Sức mạnh khi đồng hành cùng nhau
-    - Tiềm năng phát triển và trưởng thành chung
-    (Viết rất cụ thể với ví dụ thực tế)
-
-    🏠 life_benefits: Lợi ích chi tiết trong đời sống hàng ngày:
-    - Cách tổ chức không gian sống chung
-    - Phân chia công việc nhà và trách nhiệm
-    - Cách giải quyết vấn đề tài chính
-    - Lối sống và thói quen hàng ngày
-    - Cách nuôi dưỡng mối quan hệ gia đình
-    (Mô tả cảnh đời sống cụ thể)
-
-    💼 work_benefits: Lợi ích chi tiết trong công việc:
-    - Cách hỗ trợ nhau trong sự nghiệp
-    - Khả năng hợp tác trong các dự án
-    - Cách động viên khi gặp khó khăn
-    - Bổ trợ kỹ năng và kiến thức
-    - Xây dựng mục tiêu nghề nghiệp chung
-    (Đưa ra scenarios công việc cụ thể)
-
-    💕 love_benefits: Lợi ích chi tiết trong tình cảm:
-    - Cách thể hiện và nhận tình yêu
-    - Moments lãng mạn và gắn kết
-    - Cách giải quyết mâu thuẫn tình cảm  
-    - Sự thấu hiểu và đồng cảm sâu sắc
-    - Xây dựng tương lai tình cảm bền vững
-    (Mô tả rất chi tiết các khoảnh khắc tình cảm)
-
-    💡 advice: Lời khuyên siêu chi tiết theo từng level:
+    8. ADVICE: Lời khuyên chi tiết (400-500 chữ) theo đúng cấu trúc tier:
     
-    📌 Level 85-100%: 
-    - Khuyên về cách duy trì sự hoàn hảo
-    - Gợi ý hoạt động để tăng cường gắn kết
-    - Lời khuyên về việc làm quen và hẹn hò
-    - Tại sao nên trao cơ hội cho nhau
-    - Gợi ý quà tặng để gây ấn tượng sâu sắc
+    - Tier "Hợp duyên trời định" & "Có duyên, cần thời gian vun đắp":
+    Bước 1: Hai bạn có rất nhiều giá trị tương đồng để có thể tìm hiểu, làm quen lâu dài
+    Bước 2: Tại sao không thử mở cánh cửa cơ hội cho mình nhỉ, cùng làm quen, đi chơi
+    Bước 3: Nếu trong buổi hẹn đầu tiên mà đã có một món quà nhỏ cho đối phương thì chắc chắn sẽ để lại ấn tượng rất sâu sắc
+    Bước 4: Như một vài món quà sau đây, chúng không quá đắt để đối phương thấy ngại khi nhận, nhưng cũng đủ giá trị để thể hiện sự quan tâm
     
-    📌 Level 70-84%:
-    - Tương tự 85-100% nhưng nhấn mạnh tiềm năng
-    - Cách vượt qua những khác biệt nhỏ
+    - Tier "Có duyên nhưng cần nỗ lực nhiều":
+    Bước 1: Tạo đồng cảm (khác biệt là tất yếu → học cách chấp nhận → đừng từ bỏ cơ hội)
+    Bước 2: Giới thiệu quà (kết nối → ấn tượng → không quá đắt nhưng đủ giá trị)
     
-    📌 Level 40-69%:
-    - Tạo đồng cảm về sự khác biệt là điều tự nhiên
-    - Giải thích tại sao khác biệt lại có ích
-    - Khuyên nên cho nhau cơ hội học hỏi
-    - Gợi ý quà tặng để tăng khả năng kết nối
+    - Tier "Có sự khác biệt, cần thấu hiểu nhiều hơn":
+    Bước 1: Bẻ lại tư tưởng (chiêm tinh chỉ là công cụ → thấu hiểu là nền tảng → link: https://afamily.vn/gioi-tre-trung-quoc-mat-niem-tin-vao-cung-hoang-dao-sau-khi-chiem-tinh-gia-noi-tieng-19-trieu-follower-ly-hon-20250810140654261.chn → đừng bỏ lỡ người → tạo niềm tin kết nối)
+    Bước 2: Giới thiệu quà (kết nối → ấn tượng → không quá đắt nhưng đủ giá trị)
+
+    9. PRODUCT_RECOMMENDATIONS: 3 sản phẩm phù hợp với cặp đôi
+
+    Trả về JSON với keys: compatibility_tier, tier_description, zodiac_summary, personality_analysis, differences, strengths, life_benefits, work_benefits, love_benefits, advice, product_recommendations
     
-    📌 Level <40%:
-    - Bẻ lại quan niệm về chiêm tinh chỉ là công cụ tham khảo
-    - Nhấn mạnh tầm quan trọng của thấu hiểu và trưởng thành cảm xúc
-    - Đưa ra link minh chứng: https://afamily.vn/gioi-tre-trung-quoc-mat-niem-tin-vao-cung-hoang-dao-sau-khi-chiem-tinh-gia-noi-tieng-19-trieu-follower-ly-hon-20250810140654261.chn
-    - Khuyến khích cho nhau cơ hội
-    - Gợi ý quà tặng để thể hiện quan tâm
-
-    🛍️ product_recommendations: Đề xuất 4-5 sản phẩm cụ thể phù hợp với cặp đôi và cung hoàng đạo của họ.
-
-    ⚠️ LƯU Ý QUAN TRỌNG:
-    - MỖI PHẦN PHẢI DÀI TỪ 200-500 TỪ, SIÊU CHI TIẾT
-    - Viết bằng văn phong chuyên nghiệp nhưng gần gụi
-    - Đưa ra ví dụ cụ thể, tình huống thực tế
-    - Tránh nói chung chung, phải cụ thể và sống động
-    - Phản ánh đúng đặc điểm của từng cung hoàng đạo
-
-    Trả về JSON với cấu trúc:
-    {{
-        "compatibility_score": số từ 0-100,
-        "compatibility_level": "tiêu đề tương ứng với score",
-        "zodiac_summary": "mô tả ngắn gọn 2 cung (100-150 từ)",
-        "personality_analysis": "phân tích siêu chi tiết tính cách (400-600 từ)",
-        "differences": "điểm khác biệt chi tiết (300-500 từ, chỉ khi score < 85%)",
-        "strengths": "điểm mạnh khi kết nối (300-500 từ)",
-        "life_benefits": "lợi ích đời sống siêu chi tiết (250-400 từ)",
-        "work_benefits": "lợi ích công việc siêu chi tiết (250-400 từ)", 
-        "love_benefits": "lợi ích tình cảm siêu chi tiết (250-400 từ)",
-        "advice": "lời khuyên siêu chi tiết theo level (400-600 từ)",
-        "product_recommendations": [
-            {{
-                "name": "tên sản phẩm cụ thể",
-                "description": "mô tả chi tiết sản phẩm",
-                "price": "giá ước tính VND",
-                "shop_url": "#"
-            }}
-        ]
-    }}
-
-    Chỉ trả về JSON thuần túy, không có markdown hay text khác.
+    Viết bằng tiếng Việt, mỗi đoạn văn liền mạch, chi tiết và chuyên nghiệp theo CHÍNH XÁC instruction.
     """
 
     try:
-        # Try to use Gemini AI API first
-        if GEMINI_API_KEY and GEMINI_API_KEY != 'your-gemini-api-key-here':
-            headers = {
-                'Content-Type': 'application/json',
-                'X-goog-api-key': GEMINI_API_KEY
-            }
-            
-            data = {
-                'contents': [{
-                    'parts': [{
-                        'text': prompt
-                    }]
-                }],
-                'generationConfig': {
-                    'temperature': 0.7,
-                    'maxOutputTokens': 8192,
-                }
-            }
-            
-            response = requests.post(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-                headers=headers,
-                json=data,
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                if 'candidates' in result and len(result['candidates']) > 0:
-                    ai_response = result['candidates'][0]['content']['parts'][0]['text']
-                    # Clean up the response to extract JSON
-                    ai_response = ai_response.strip()
-                    if ai_response.startswith('```json'):
-                        ai_response = ai_response[7:-3].strip()
-                    elif ai_response.startswith('```'):
-                        ai_response = ai_response[3:-3].strip()
-                    
-                    try:
-                        return json.loads(ai_response)
-                    except json.JSONDecodeError:
-                        print(f"Failed to parse Gemini JSON response: {ai_response}")
-                        return generate_fallback_analysis(person1_data, person2_data)
-            else:
-                print(f"Gemini API error: {response.status_code}")
-                return generate_fallback_analysis(person1_data, person2_data)
-        
-        # Fallback to OpenAI if Gemini fails and OpenAI key is available
-        elif OPENAI_API_KEY and OPENAI_API_KEY != 'your-openai-api-key-here':
+        # Use OpenAI API first
+        if OPENAI_API_KEY and OPENAI_API_KEY != 'your-openai-api-key-here':
             headers = {
                 'Authorization': f'Bearer {OPENAI_API_KEY}',
                 'Content-Type': 'application/json'
             }
             
             data = {
-                'model': 'gpt-3.5-turbo',
+                'model': 'gpt-5',
                 'messages': [{'role': 'user', 'content': prompt}],
-                'max_tokens': 1000,
+                'max_tokens': 4000,
                 'temperature': 0.7
             }
             
@@ -552,13 +511,73 @@ def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horosc
                 'https://api.openai.com/v1/chat/completions',
                 headers=headers,
                 json=data,
-                timeout=30
+                timeout=60
             )
             
             if response.status_code == 200:
                 result = response.json()
                 ai_response = result['choices'][0]['message']['content']
-                return json.loads(ai_response)
+                
+                # Clean up the response to extract JSON
+                ai_response = ai_response.strip()
+                if ai_response.startswith('```json'):
+                    ai_response = ai_response[7:-3].strip()
+                elif ai_response.startswith('```'):
+                    ai_response = ai_response[3:-3].strip()
+                
+                try:
+                    return json.loads(ai_response)
+                except json.JSONDecodeError:
+                    print(f"Failed to parse OpenAI JSON response: {ai_response}")
+                    return generate_fallback_analysis(person1_data, person2_data)
+            else:
+                print(f"OpenAI API error: {response.status_code}")
+                return generate_fallback_analysis(person1_data, person2_data)
+        
+        # COMMENT OUT GEMINI FOR NOW - CAN UNCOMMENT LATER
+        # elif GEMINI_API_KEY and GEMINI_API_KEY != 'your-gemini-api-key-here':
+        #     headers = {
+        #         'Content-Type': 'application/json',
+        #         'X-goog-api-key': GEMINI_API_KEY
+        #     }
+        #     
+        #     data = {
+        #         'contents': [{
+        #             'parts': [{
+        #                 'text': prompt
+        #             }]
+        #         }],
+        #         'generationConfig': {
+        #             'temperature': 0.7,
+        #             'maxOutputTokens': 8192,
+        #         }
+        #     }
+        #     
+        #     response = requests.post(
+        #         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        #         headers=headers,
+        #         json=data,
+        #         timeout=60
+        #     )
+        #     
+        #     if response.status_code == 200:
+        #         result = response.json()
+        #         if 'candidates' in result and len(result['candidates']) > 0:
+        #             ai_response = result['candidates'][0]['content']['parts'][0]['text']
+        #             ai_response = ai_response.strip()
+        #             if ai_response.startswith('```json'):
+        #                 ai_response = ai_response[7:-3].strip()
+        #             elif ai_response.startswith('```'):
+        #                 ai_response = ai_response[3:-3].strip()
+        #             
+        #             try:
+        #                 return json.loads(ai_response)
+        #             except json.JSONDecodeError:
+        #                 print(f"Failed to parse Gemini JSON response: {ai_response}")
+        #                 return generate_fallback_analysis(person1_data, person2_data)
+        #     else:
+        #         print(f"Gemini API error: {response.status_code}")
+        #         return generate_fallback_analysis(person1_data, person2_data)
         
         # Fallback analysis if no AI API is available
         return generate_fallback_analysis(person1_data, person2_data)
@@ -568,40 +587,14 @@ def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horosc
         return generate_fallback_analysis(person1_data, person2_data)
 
 def generate_fallback_analysis(person1_data, person2_data):
-    """Generate fallback analysis without AI"""
+    """Generate fallback analysis without AI using instruction format"""
     
-    # Simple compatibility logic based on zodiac signs
-    compatibility_matrix = {
-        ('aries', 'leo'): 92, ('aries', 'sagittarius'): 88, ('aries', 'gemini'): 85,
-        ('taurus', 'virgo'): 90, ('taurus', 'capricorn'): 87, ('taurus', 'cancer'): 84,
-        ('gemini', 'libra'): 89, ('gemini', 'aquarius'): 86, ('gemini', 'aries'): 85,
-        ('cancer', 'scorpio'): 91, ('cancer', 'pisces'): 88, ('cancer', 'taurus'): 84,
-        ('leo', 'aries'): 92, ('leo', 'sagittarius'): 89, ('leo', 'gemini'): 82,
-        ('virgo', 'taurus'): 90, ('virgo', 'capricorn'): 87, ('virgo', 'cancer'): 81,
-        ('libra', 'gemini'): 89, ('libra', 'aquarius'): 86, ('libra', 'leo'): 83,
-        ('scorpio', 'cancer'): 91, ('scorpio', 'pisces'): 88, ('scorpio', 'virgo'): 79,
-        ('sagittarius', 'aries'): 88, ('sagittarius', 'leo'): 89, ('sagittarius', 'libra'): 82,
-        ('capricorn', 'taurus'): 87, ('capricorn', 'virgo'): 87, ('capricorn', 'scorpio'): 80,
-        ('aquarius', 'gemini'): 86, ('aquarius', 'libra'): 86, ('aquarius', 'sagittarius'): 83,
-        ('pisces', 'cancer'): 88, ('pisces', 'scorpio'): 88, ('pisces', 'capricorn'): 81
-    }
-    
-    sign1 = person1_data['zodiacSign'].lower()
-    sign2 = person2_data['zodiacSign'].lower()
-    
-    # Get compatibility score
-    score = compatibility_matrix.get((sign1, sign2), 
-             compatibility_matrix.get((sign2, sign1), 75))
-    
-    # Determine compatibility level
-    if score >= 85:
-        level = "Hai bạn sinh ra để dành cho nhau, dù là trong đời sống, tình cảm hay công việc"
-    elif score >= 70:
-        level = "Hai bạn có tiềm năng gắn kết lâu dài"
-    elif score >= 40:
-        level = "Người này sẽ giúp bạn học cách chấp nhận và tôn trọng sự khác biệt của người khác"
-    else:
-        level = "Người này sẽ giúp bạn có góc nhìn rõ hơn về bản thân, rằng mình cần điều chỉnh gì để cân bằng mối quan hệ"
+    # Calculate compatibility using the same system as AI function
+    compatibility_score = calculate_compatibility_score(
+        person1_data['zodiacSign'], 
+        person2_data['zodiacSign']
+    )
+    compatibility_tier = get_compatibility_tier(compatibility_score)
     
     # Define personality traits for each sign
     personality_traits = {
@@ -619,62 +612,57 @@ def generate_fallback_analysis(person1_data, person2_data):
         'pisces': ['Nhạy cảm và giàu cảm xúc', 'Trực giác mạnh và sáng tạo', 'Đồng cảm và hiểu biết', 'Có thể quá mơ mộng']
     }
     
-    # Generate advice based on compatibility level
-    if score >= 85:
-        advice = f"Hai bạn có rất nhiều giá trị tương đồng để có thể tìm hiểu, làm quen lâu dài. Sự hòa hợp giữa cung {sign1.title()} và {sign2.title()} tạo nên một mối quan hệ đầy tiềm năng. Tại sao không thử mở cánh cửa cơ hội cho mình nhỉ, cùng làm quen, đi chơi? Nếu trong buổi hẹn đầu tiên mà đã có một món quà nhỏ cho đối phương thì chắc chắn sẽ để lại ấn tượng rất sâu sắc. Như một vài món quà sau đây, chúng không quá đắt để đối phương thấy ngại khi nhận, nhưng cũng đủ giá trị để thể hiện sự quan tâm."
-    elif score >= 70:
-        advice = f"Hai bạn có rất nhiều giá trị tương đồng để có thể tìm hiểu, làm quen lâu dài. Mối quan hệ giữa cung {sign1.title()} và {sign2.title()} có tiềm năng phát triển lâu dài. Tại sao không thử mở cánh cửa cơ hội cho mình nhỉ, cùng làm quen, đi chơi? Nếu trong buổi hẹn đầu tiên mà đã có một món quà nhỏ cho đối phương thì chắc chắn sẽ để lại ấn tượng rất sâu sắc. Như một vài món quà sau đây, chúng không quá đắt để đối phương thấy ngại khi nhận, nhưng cũng đủ giá trị để thể hiện sự quan tâm."
-    elif score >= 40:
-        advice = f"Mỗi người lớn lên trong môi trường giáo dục khác nhau, nên điểm khác biệt là điều tất yếu trong cuộc sống. Sự khác biệt có mặt ở mọi nơi, không chỉ bạn và bạn này mà sau này bạn và bạn khác cũng sẽ có sự khác biệt. Vậy nên điểm mấu chốt nhất là các bạn học cách chấp nhận và tôn trọng điều khác biệt ở nhau để cùng phát triển, cùng trở nên hợp hơn. Nên là đừng vì có một chút khác biệt mà từ bỏ cơ hội, hãy cứ thử sức, hãy cho mình cơ hội để hiểu bản thân và hiểu người khác hơn. Nếu bạn muốn tìm hiểu, khám phá về đối phương hay về chính bản thân, đừng ngần ngại mà hãy kết nối với họ ngay thôi! Một số món quà dưới đây sẽ giúp bạn để lại ấn tượng tốt với họ, tăng khả năng kết nối. Chúng không quá đắt để đối phương thấy ngại khi nhận quà, nhưng cũng đủ giá trị để thể hiện sự quan tâm."
-    else:
-        advice = f"Tuy nhiên, bạn hãy nhớ một điều rằng tất cả các loại hình chiêm tinh chỉ là công cụ giúp bạn thấu hiểu bản thân, chứ không phải kim chỉ nam của mọi mối quan hệ. Mà trên hết, sự thấu hiểu và trưởng thành cảm xúc mới là nền tảng quan trọng nhất để duy trì một mối quan hệ. Vì đến ngay cả cặp Kim Ngưu – Thiên Yết (Bọ Cạp) được đánh giá rất cao về độ phù hợp nhưng vẫn đổ vỡ vì chưa có đủ sự thấu hiểu, cảm thông và trưởng thành cảm xúc. Vậy nên đừng vì sự đánh giá sơ bộ của bất kỳ công cụ chiêm tinh nào mà bỏ lỡ một người. Tất cả những người đến với chúng ta đều mang một giá trị riêng và đều đáng được trân trọng. Họ giúp chúng ta thấu hiểu bản thân hơn, trưởng thành hơn về mặt cảm xúc. Hãy tự cho bản thân một cơ hội được kết nối với những điều tốt đẹp. Nếu bạn muốn tìm hiểu, khám phá về đối phương hay về chính bản thân, đừng ngần ngại mà hãy kết nối với họ ngay thôi! Một số món quà dưới đây sẽ giúp bạn để lại ấn tượng tốt với họ, tăng khả năng kết nối. Chúng không quá đắt để đối phương thấy ngại khi nhận quà, nhưng cũng đủ giá trị để thể hiện sự quan tâm."
+    sign1 = person1_data['zodiacSign'].lower()
+    sign2 = person2_data['zodiacSign'].lower()
+    
+    # Generate advice based on compatibility tier 
+    advice_by_tier = {
+        "Hợp duyên trời định": f"Hai bạn có rất nhiều giá trị tương đồng để có thể tìm hiểu, làm quen lâu dài. Sự hòa hợp giữa cung {sign1.title()} và {sign2.title()} tạo nên một mối quan hệ đầy tiềm năng. Tại sao không thử mở cánh cửa cơ hội cho mình nhỉ, cùng làm quen, đi chơi? Nếu trong buổi hẹn đầu tiên mà đã có một món quà nhỏ cho đối phương thì chắc chắn sẽ để lại ấn tượng rất sâu sắc.",
+        
+        "Có duyên cần thời gian vun đắp": f"Hai bạn có rất nhiều giá trị tương đồng để có thể tìm hiểu, làm quen lâu dài. Mối quan hệ giữa cung {sign1.title()} và {sign2.title()} có tiềm năng phát triển lâu dài. Tại sao không thử mở cánh cửa cơ hội cho mình nhỉ, cùng làm quen, đi chơi? Nếu trong buổi hẹn đầu tiên mà đã có một món quà nhỏ cho đối phương thì chắc chắn sẽ để lại ấn tượng rất sâu sắc.",
+        
+        "Có duyên nhưng cần nỗ lực nhiều": f"Mỗi người lớn lên trong môi trường giáo dục khác nhau, nên điểm khác biệt là điều tất yếu trong cuộc sống. Sự khác biệt có mặt ở mọi nơi, không chỉ bạn và bạn này mà sau này bạn và bạn khác cũng sẽ có sự khác biệt. Vậy nên điểm mấu chốt nhất là các bạn học cách chấp nhận và tôn trọng điều khác biệt ở nhau để cùng phát triển, cùng trở nên hợp hơn. Nên là đừng vì có một chút khác biệt mà từ bỏ cơ hội, hãy cứ thử sức, hãy cho mình cơ hội để hiểu bản thân và hiểu người khác hơn.",
+        
+        "Có sự khác biệt, cần thấu hiểu nhiều hơn": f"Tuy nhiên, bạn hãy nhớ một điều rằng tất cả các loại hình chiêm tinh chỉ là công cụ giúp bạn thấu hiểu bản thân, chứ không phải kim chỉ nam của mọi mối quan hệ. Mà trên hết, sự thấu hiểu và trưởng thành cảm xúc mới là nền tảng quan trọng nhất để duy trì một mối quan hệ. Vì đến ngay cả cặp Kim Ngưu – Thiên Yết (Bọ Cạp) được đánh giá rất cao về độ phù hợp nhưng vẫn đổ vỡ vì chưa có đủ sự thấu hiểu, cảm thông và trưởng thành cảm xúc. Vậy nên đừng vì sự đánh giá sơ bộ của bất kỳ công cụ chiêm tinh nào mà bỏ lỡ một người."
+    }
     
     return {
-        "compatibility_score": score,
-        "compatibility_level": level,
-        "zodiac_summary": f"Cung {sign1.title()} và cung {sign2.title()} đại diện cho hai phong cách sống và tư duy khác nhau. {sign1.title()} thường {personality_traits.get(sign1, ['có tính cách riêng biệt'])[0].lower()}, trong khi {sign2.title()} {personality_traits.get(sign2, ['có tính cách riêng biệt'])[0].lower()}. Sự kết hợp này tạo nên một bức tranh tổng thể đa dạng và phong phú.",
-        "personality_analysis": f"{person1_data['name']} thuộc cung {sign1.title()} - một người {personality_traits.get(sign1, ['tính cách độc đáo'])[0].lower()}, {personality_traits.get(sign1, ['tính cách độc đáo'])[1].lower() if len(personality_traits.get(sign1, [''])) > 1 else 'có cách nhìn riêng về cuộc sống'}. Trong giao tiếp, {person1_data['name']} thường thể hiện sự {personality_traits.get(sign1, ['tính cách độc đáo'])[2].lower() if len(personality_traits.get(sign1, [''])) > 2 else 'chân thành và cởi mở'}. Về mặt cảm xúc, những người cung {sign1.title()} thường có xu hướng {personality_traits.get(sign1, ['tính cách độc đáo'])[-1].lower() if len(personality_traits.get(sign1, [''])) > 3 else 'thể hiện cảm xúc một cách trực tiếp'}. \n\nTrong khi đó, {person2_data['name']} thuộc cung {sign2.title()} lại {personality_traits.get(sign2, ['tính cách độc đáo'])[0].lower()}, {personality_traits.get(sign2, ['tính cách độc đáo'])[1].lower() if len(personality_traits.get(sign2, [''])) > 1 else 'có phong cách riêng'}. {person2_data['name']} thường {personality_traits.get(sign2, ['tính cách độc đáo'])[2].lower() if len(personality_traits.get(sign2, [''])) > 2 else 'xử lý tình huống một cách khéo léo'}, và có khuynh hướng {personality_traits.get(sign2, ['tính cách độc đáo'])[-1].lower() if len(personality_traits.get(sign2, [''])) > 3 else 'lắng nghe và thấu hiểu'}. Sự kết hợp giữa hai tính cách này tạo nên những trải nghiệm phong phú, trong đó mỗi người đều có thể học hỏi và khám phá những khía cạnh mới về bản thân qua con mắt của người kia.",
-        "differences": "Những khác biệt chính giữa hai người nằm ở cách tiếp cận cuộc sống và thể hiện cảm xúc. Trong khi một người có thể thích sự ổn định và kế hoạch chi tiết, người kia lại ưa thích sự linh hoạt và tự phát. Điều này có thể dẫn đến những cuộc thảo luận thú vị về cách tổ chức thời gian, lựa chọn hoạt động giải trí, hoặc đưa ra quyết định quan trọng. Tuy nhiên, những khác biệt này không phải là rào cản mà là cơ hội để cả hai mở rộng tầm nhìn và học cách uyển chuyển trong các tình huống khác nhau. Ví dụ, khi gặp phải vấn đề, một người có thể suy nghĩ kỹ lưỡng trước khi hành động, trong khi người kia lại thích thử nghiệm và học hỏi từ kinh nghiệm thực tế." if score < 85 else "",
-        "strengths": "Điểm mạnh lớn nhất của mối quan hệ này chính là khả năng bổ sung và hỗ trợ lẫn nhau. Khi một người mạnh về khả năng phân tích và lập kế hoạch, người kia có thể mang đến sự sáng tạo và linh hoạt. Trong những khoảnh khắc khó khăn, sự kết hợp này giúp cả hai tìm ra giải pháp tốt nhất bằng cách nhìn vấn đề từ nhiều góc độ khác nhau. Họ có thể cùng nhau xây dựng một môi trường hỗ trợ, nơi mỗi người đều cảm thấy được trân trọng và hiểu biết. Sự tin tương và tôn trọng lẫn nhau sẽ là nền tảng vững chắc cho mối quan hệ phát triển bền vững.",
-        "life_benefits": "Trong cuộc sống hàng ngày, hai người có thể tạo ra một nhịp sống cân bằng và thú vị. Họ có thể chia sẻ những công việc nhà dựa trên sở thích và khả năng của mỗi người - một người có thể đảm nhận việc lập kế hoạch và quản lý tài chính, trong khi người kia có thể tập trung vào việc tạo ra không gian sống ấm cúng và sáng tạo. Khi đi chơi hoặc du lịch, họ có thể kết hợp giữa những hoạt động được lên kế hoạch kỹ lưỡng và những trải nghiệm tự phát thú vị. Điều này giúp cuộc sống của cả hai trở nên đa dạng và không bao giờ nhàm chán.",
-        "work_benefits": "Trong môi trường công việc, sự kết hợp này có thể mang lại hiệu quả cao đáng kể. Một người có thể đảm nhận vai trò lập kế hoạch chi tiết và theo dõi tiến độ, trong khi người kia có thể đóng góp những ý tưởng sáng tạo và giải pháp linh hoạt. Khi đối mặt với dự án khó khăn, họ có thể bổ sung cho nhau - một người đảm bảo chất lượng và deadline, người kia tìm kiếm những cách tiếp cận mới và đột phá. Sự hỗ trợ tinh thần từ đối phương cũng giúp cả hai vượt qua những thử thách nghề nghiệp với tinh thần tích cực.",
-        "love_benefits": "Về mặt tình cảm, mối quan hệ này có tiềm năng phát triển sâu sắc và bền vững. Hai người có thể học cách yêu thương theo những cách khác nhau - một người thể hiện tình cảm qua những hành động cụ thể và chu đáo, trong khi người kia có thể bày tỏ qua lời nói ngọt ngào và những cử chỉ tự nhiên. Sự khác biệt này giúp cả hai hiểu được rằng tình yêu có thể được thể hiện qua nhiều hình thức khác nhau. Họ có thể tạo ra những kỷ niệm đẹp bằng cách kết hợp giữa những kế hoạch lãng mạn được chuẩn bị kỹ lưỡng và những khoảnh khắc ngọt ngào bất ngờ.",
-        "advice": advice,
+        "compatibility_tier": compatibility_tier,
+        "tier_description": compatibility_tier,
+        "zodiac_summary": f"Cung {sign1.title()} và cung {sign2.title()} đại diện cho hai phong cách sống và tư duy khác nhau. {sign1.title()} thường {personality_traits.get(sign1, ['có tính cách riêng biệt'])[0].lower()}, trong khi {sign2.title()} {personality_traits.get(sign2, ['có tính cách riêng biệt'])[0].lower()}. Sự kết hợp này tạo nên một bức tranh tổng thể đa dạu và phong phú, mang đến những trải nghiệm thú vị trong hành trình tìm hiểu nhau.",
+        
+        "personality_analysis": f"{person1_data['name']} thuộc cung {sign1.title()} - một người {personality_traits.get(sign1, ['tính cách độc đáo'])[0].lower()}, {personality_traits.get(sign1, ['tính cách độc đáo'])[1].lower() if len(personality_traits.get(sign1, [''])) > 1 else 'có cách nhìn riêng về cuộc sống'}. Trong giao tiếp, {person1_data['name']} thường thể hiện sự {personality_traits.get(sign1, ['tính cách độc đáo'])[2].lower() if len(personality_traits.get(sign1, [''])) > 2 else 'chân thành và cởi mở'}. Về mặt cảm xúc, những người cung {sign1.title()} thường có xu hướng {personality_traits.get(sign1, ['tính cách độc đáo'])[-1].lower() if len(personality_traits.get(sign1, [''])) > 3 else 'thể hiện cảm xúc một cách trực tiếp'}.\n\nTrong khi đó, {person2_data['name']} thuộc cung {sign2.title()} lại {personality_traits.get(sign2, ['tính cách độc đáo'])[0].lower()}, {personality_traits.get(sign2, ['tính cách độc đáo'])[1].lower() if len(personality_traits.get(sign2, [''])) > 1 else 'có phong cách riêng'}. {person2_data['name']} thường {personality_traits.get(sign2, ['tính cách độc đáo'])[2].lower() if len(personality_traits.get(sign2, [''])) > 2 else 'xử lý tình huống một cách khéo léo'}, và có khuynh hướng {personality_traits.get(sign2, ['tính cách độc đáo'])[-1].lower() if len(personality_traits.get(sign2, [''])) > 3 else 'lắng nghe và thấu hiểu'}. Sự kết hợp giữa hai tính cách này tạo nên những trải nghiệm phong phú, trong đó mỗi người đều có thể học hỏi và khám phá những khía cạnh mới về bản thân qua con mắt của người kia.",
+        
+        "differences": "Những khác biệt chính giữa hai người nằm ở cách tiếp cận cuộc sống và thể hiện cảm xúc. Trong khi một người có thể thích sự ổn định và kế hoạch chi tiết, người kia lại ưa thích sự linh hoạt và tự phát. Điều này có thể dẫn đến những cuộc thảo luận thú vị về cách tổ chức thời gian, lựa chọn hoạt động giải trí, hoặc đưa ra quyết định quan trọng. Tuy nhiên, những khác biệt này không phải là rào cản mà là cơ hội để cả hai mở rộng tầm nhìn và học cách uyển chuyển trong các tình huống khác nhau.",
+        
+        "strengths": "Điểm mạnh lớn nhất của mối quan hệ này chính là khả năng bổ sung và hỗ trợ lẫn nhau. Khi một người mạnh về khả năng phân tích và lập kế hoạch, người kia có thể mang đến sự sáng tạo và linh hoạt. Trong những khoảnh khắc khó khăn, sự kết hợp này giúp cả hai tìm ra giải pháp tốt nhất bằng cách nhìn vấn đề từ nhiều góc độ khác nhau. Họ có thể cùng nhau xây dựng một môi trường hỗ trợ, nơi mỗi người đều cảm thấy được trân trọng và hiểu biết.",
+        
+        "life_benefits": "Trong cuộc sống hàng ngày, hai người có thể tạo ra một nhịp sống cân bằng và thú vị. Họ có thể chia sẻ những công việc nhà dựa trên sở thích và khả năng của mỗi người - một người có thể đảm nhận việc lập kế hoạch và quản lý tài chính, trong khi người kia có thể tập trung vào việc tạo ra không gian sống ấm cúng và sáng tạo. Khi đi chơi hoặc du lịch, họ có thể kết hợp giữa những hoạt động được lên kế hoạch kỹ lưỡng và những trải nghiệm tự phát thú vị.",
+        
+        "work_benefits": "Trong môi trường công việc, sự kết hợp này có thể mang lại hiệu quả cao đáng kể. Một người có thể đảm nhận vai trò lập kế hoạch chi tiết và theo dõi tiến độ, trong khi người kia có thể đóng góp những ý tưởng sáng tạo và giải pháp linh hoạt. Khi đối mặt với dự án khó khăn, họ có thể bổ sung cho nhau - một người đảm bảo chất lượng và deadline, người kia tìm kiếm những cách tiếp cận mới và đột phá.",
+        
+        "love_benefits": "Về mặt tình cảm, mối quan hệ này có tiềm năng phát triển sâu sắc và bền vững. Hai người có thể học cách yêu thương theo những cách khác nhau - một người thể hiện tình cảm qua những hành động cụ thể và chu đáo, trong khi người kia có thể bày tỏ qua lời nói ngọt ngào và những cử chỉ tự nhiên. Sự khác biệt này giúp cả hai hiểu được rằng tình yêu có thể được thể hiện qua nhiều hình thức khác nhau.",
+        
+        "advice": advice_by_tier.get(compatibility_tier, advice_by_tier["Có sự khác biệt, cần thấu hiểu nhiều hơn"]),
+        
         "product_recommendations": [
             {
                 "name": "Nhẫn đôi cung hoàng đạo bạc cao cấp",
                 "description": f"Nhẫn đôi được thiết kế riêng cho cặp {sign1.title()} - {sign2.title()}, chế tác từ bạc 925 với biểu tượng cung hoàng đạo tinh xảo",
                 "image_url": "https://i.pinimg.com/736x/ea/87/51/ea8751f3816013dfcca04c796e09e6de.jpg",
-                "price": "1,500,000 - 3,200,000 VNĐ",
-                "shop_url": "#"
+                "price": "1,500,000 - 3,200,000 VNĐ"
             },
             {
                 "name": "Vòng tay đá quý phong thủy couple",
                 "description": f"Vòng tay đôi với đá phong thủy phù hợp cung {sign1.title()} và {sign2.title()}, mang lại năng lượng tích cực và hạnh phúc",
                 "image_url": "https://i.pinimg.com/736x/ea/87/51/ea8751f3816013dfcca04c796e09e6de.jpg",
-                "price": "800,000 - 1,800,000 VNĐ",
-                "shop_url": "#"
+                "price": "800,000 - 1,800,000 VNĐ"
             },
             {
                 "name": "Tranh canvas cung hoàng đạo custom",
                 "description": "Tranh nghệ thuật được thiết kế riêng theo hai cung hoàng đạo, in trên canvas cao cấp, trang trí phòng ngủ hoặc phòng khách",
                 "image_url": "https://i.pinimg.com/736x/ea/87/51/ea8751f3816013dfcca04c796e09e6de.jpg",
-                "price": "450,000 - 900,000 VNĐ",
-                "shop_url": "#"
-            },
-            {
-                "name": "Đồng hồ đôi thông minh",
-                "description": "Đồng hồ thông minh couple với tính năng theo dõi sức khỏe và kết nối, giúp cả hai luôn quan tâm đến nhau",
-                "image_url": "https://i.pinimg.com/736x/ea/87/51/ea8751f3816013dfcca04c796e09e6de.jpg",
-                "price": "2,800,000 - 5,500,000 VNĐ",
-                "shop_url": "#"
-            },
-            {
-                "name": "Dây chuyền cặp đôi symbol cung hoàng đạo",
-                "description": "Dây chuyền đôi với mặt dây chính là symbol của hai cung hoàng đạo, làm từ vàng 14K, món quà ý nghĩa cho tình yêu",
-                "image_url": "https://i.pinimg.com/736x/ea/87/51/ea8751f3816013dfcca04c796e09e6de.jpg",
-                "price": "2,200,000 - 4,500,000 VNĐ",
-                "shop_url": "#"
+                "price": "450,000 - 900,000 VNĐ"
             }
         ]
     }
