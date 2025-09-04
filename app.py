@@ -439,73 +439,96 @@ def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horosc
     tier_description = get_tier_description(compatibility_tier)
     
     # Build detailed prompt based on instruction
+    # Tìm function analyze_compatibility_with_ai và cập nhật prompt (khoảng line 450)
+
+# Cập nhật function analyze_compatibility_with_ai (khoảng line 442)
+
+def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horoscope2):
+    """Use OpenAI to analyze compatibility based on detailed instruction scenarios"""
+    
+    print("=== DEBUG AI ANALYSIS START ===")
+    print(f"🔑 OPENAI_API_KEY exists: {bool(OPENAI_API_KEY)}")
+    print(f"🔑 OPENAI_API_KEY length: {len(OPENAI_API_KEY) if OPENAI_API_KEY else 0}")
+    print(f"🔑 OPENAI_API_KEY prefix: {OPENAI_API_KEY[:20] if OPENAI_API_KEY else 'None'}...")
+    print(f"🔑 Key is not placeholder: {OPENAI_API_KEY != 'your-openai-api-key-here' if OPENAI_API_KEY else False}")
+    
+    # Calculate score using the new formula
+    sign1 = person1_data['zodiacSign'].lower()
+    sign2 = person2_data['zodiacSign'].lower()
+    compatibility_score = calculate_compatibility_score(sign1, sign2)
+    compatibility_tier = get_compatibility_tier(compatibility_score)
+    tier_description = get_tier_description(compatibility_tier)
+    
+    print(f"📊 Calculated compatibility tier: {compatibility_tier}")
+    print(f"📊 Tier description: {tier_description[:100]}...")
+    
+    # Build SHORTER and MORE REALISTIC prompt
     prompt = f"""
-    Bạn là chuyên gia chiêm tinh chuyên nghiệp với 20 năm kinh nghiệm. Hãy phân tích tương thích giữa 2 người theo CHÍNH XÁC kịch bản "{compatibility_tier}":
+        Bạn là chuyên gia chiêm tinh với 15 năm kinh nghiệm. Phân tích tương thích giữa 2 người:
+        Người 1: {person1_data['name']} - Cung {person1_data['zodiacSign']} - {person1_data['gender']}  
+        Người 2: {person2_data['name']} - Cung {person2_data['zodiacSign']} - {person2_data['gender']}
+        Kết quả đánh giá: {compatibility_tier}
+        Mô tả: {tier_description}
+        YÊU CẦU:
+        - Viết chi tiết, mỗi phần 300-400 chữ
+        - Tổng cộng 2500-3000 chữ  
+        - Không hiển thị điểm số hay phần trăm
+        - Viết bằng tiếng Việt, có ví dụ cụ thể
+        Phân tích theo cấu trúc JSON:
+        1. ZODIAC_SUMMARY (350-400 chữ): Mô tả chi tiết đặc điểm tâm lý, phong cách sống của 2 cung {person1_data['zodiacSign']} và {person2_data['zodiacSign']}, ảnh hưởng của nguyên tố và hành tinh cai trị.
+        2. PERSONALITY_ANALYSIS (400-450 chữ): Phân tích sâu tính cách của từng người với ví dụ trong công việc, tình yêu, giao tiếp.
+        3. DIFFERENCES (300-350 chữ): Khác biệt với ví dụ cụ thể về cách giao tiếp, tiêu tiền, thư giãn, yêu thương.
+        4. STRENGTHS (300-350 chữ): Điểm mạnh khi kết hợp với ví dụ thực tế trong cuộc sống, mục tiêu chung.
+        5. LIFE_BENEFITS (350-400 chữ): Mô tả chi tiết cách họ sống hàng ngày, tổ chức gia đình, quản lý tài chính.
+        6. WORK_BENEFITS (350-400 chữ): Cách hợp tác trong công việc, hỗ trợ sự nghiệp với ví dụ cụ thể.
+        7. LOVE_BENEFITS (350-400 chữ): Tình cảm lãng mạn, cách thể hiện yêu thương, duy trì hạnh phúc.
+        8. ADVICE (400-500 chữ): Lời khuyên chi tiết theo tier "{compatibility_tier}" với hướng dẫn cụ thể.
+        9. PRODUCT_RECOMMENDATIONS: Array gồm 3 object với keys: name, description, image_url, price
+        {{
+            "compatibility_tier": "{compatibility_tier}",
+            "tier_description": "{tier_description}",
+            "zodiac_summary": "Mô tả chi tiết đặc điểm tâm lý, phong cách sống của 2 cung {person1_data['zodiacSign']} và {person2_data['zodiacSign']}, ảnh hưởng của nguyên tố và hành tinh cai trị (350-400 chữ)",
+            "personality_analysis": "Phân tích sâu tính cách của từng người với ví dụ trong công việc, tình yêu, giao tiếp (400-450 chữ)",
+            "differences": "Khác biệt với ví dụ cụ thể về cách giao tiếp, tiêu tiền, thư giãn, yêu thương (300-350 chữ)",
+            "strengths": "Điểm mạnh khi kết hợp với ví dụ thực tế trong cuộc sống, mục tiêu chung (300-350 chữ)",
+            "life_benefits": "Mô tả chi tiết cách họ sống hàng ngày, tổ chức gia đình, quản lý tài chính (350-400 chữ)",
+            "work_benefits": "Cách hợp tác trong công việc, hỗ trợ sự nghiệp với ví dụ cụ thể (350-400 chữ)",
+            "love_benefits": "Tình cảm lãng mạn, cách thể hiện yêu thương, duy trì hạnh phúc (350-400 chữ)",
+            "advice": "Lời khuyên chi tiết theo tier '{compatibility_tier}' với hướng dẫn cụ thể (400-500 chữ)",
+            "product_recommendations": [
+                {{
+                    "name": "Tên sản phẩm",
+                    "description": "Mô tả chi tiết",
+                    "image_url": "https://i.pinimg.com/736x/ea/87/51/ea8751f3816013dfcca04c796e09e6de.jpg",
+                    "price": "Giá VNĐ"
+                }}
+            ]
+        }}
 
-    Người 1: {person1_data['name']} - Cung {person1_data['zodiacSign']} - {person1_data['gender']}
-    Người 2: {person2_data['name']} - Cung {person2_data['zodiacSign']} - {person2_data['gender']}
+        CHỈ TRẢ VỀ JSON OBJECT DUY NHẤT, KHÔNG CÓ TEXT NÀO KHÁC!
+        """
 
-    Kết quả đánh giá: {compatibility_tier}
-    Mô tả: {tier_description}
-    
-    VIẾT PHÂN TÍCH CHI TIẾT THEO CHÍNH XÁC KỊCH BẢN "{compatibility_tier}" với cấu trúc:
-
-    1. ZODIAC_SUMMARY: Mô tả chi tiết về tính cách cung hoàng đạo của từng người dựa trên thông tin nguồn (đoạn văn 200-300 chữ)
-
-    2. PERSONALITY_ANALYSIS: Phân tích chi tiết, vô cùng chi tiết về tính cách và cung hoàng đạo của từng người (đoạn văn liền mạch 200-300 chữ mỗi người)
-
-    3. DIFFERENCES (theo tier): 
-    - Tier "Có duyên, cần thời gian vun đắp": điểm khác biệt không quá gay gắt, dễ dung hòa với ví dụ cụ thể (200-300 chữ mỗi người)
-    - Tier "Có duyên nhưng cần nỗ lực nhiều": điểm khác biệt có thể sửa được để cùng phát triển với ví dụ cụ thể (200-300 chữ)  
-    - Tier "Có sự khác biệt, cần thấu hiểu nhiều hơn": khác biệt về trọng tâm, giá trị, quan điểm sống với ví dụ cụ thể (200-300 chữ)
-
-    4. STRENGTHS: 
-    - Tier "Hợp duyên trời định": tương đồng tính cách, giá trị sống (200-300 chữ)
-    - Tier "Có duyên, cần thời gian vun đắp": tương đồng tính cách, giá trị sống (200-300 chữ)
-    - Tier "Có duyên nhưng cần nỗ lực nhiều": lợi ích khi cân bằng tính cách đối lập với ví dụ (200-300 chữ)
-    - Tier "Có sự khác biệt, cần thấu hiểu nhiều hơn": bài học và giá trị nhận được với ví dụ (200-300 chữ)
-
-    5. LIFE_BENEFITS: Vẽ bối cảnh chi tiết về lợi ích trong đời sống (200-300 chữ)
-    6. WORK_BENEFITS: Vẽ bối cảnh chi tiết về lợi ích trong công việc (200-300 chữ)
-    7. LOVE_BENEFITS: Vẽ bối cảnh chi tiết về lợi ích trong tình cảm (200-300 chữ)
-
-    8. ADVICE: Lời khuyên chi tiết (400-500 chữ) theo đúng cấu trúc tier:
-    
-    - Tier "Hợp duyên trời định" & "Có duyên, cần thời gian vun đắp":
-    Bước 1: Hai bạn có rất nhiều giá trị tương đồng để có thể tìm hiểu, làm quen lâu dài
-    Bước 2: Tại sao không thử mở cánh cửa cơ hội cho mình nhỉ, cùng làm quen, đi chơi
-    Bước 3: Nếu trong buổi hẹn đầu tiên mà đã có một món quà nhỏ cho đối phương thì chắc chắn sẽ để lại ấn tượng rất sâu sắc
-    Bước 4: Như một vài món quà sau đây, chúng không quá đắt để đối phương thấy ngại khi nhận, nhưng cũng đủ giá trị để thể hiện sự quan tâm
-    
-    - Tier "Có duyên nhưng cần nỗ lực nhiều":
-    Bước 1: Tạo đồng cảm (khác biệt là tất yếu → học cách chấp nhận → đừng từ bỏ cơ hội)
-    Bước 2: Giới thiệu quà (kết nối → ấn tượng → không quá đắt nhưng đủ giá trị)
-    
-    - Tier "Có sự khác biệt, cần thấu hiểu nhiều hơn":
-    Bước 1: Bẻ lại tư tưởng (chiêm tinh chỉ là công cụ → thấu hiểu là nền tảng → link: https://afamily.vn/gioi-tre-trung-quoc-mat-niem-tin-vao-cung-hoang-dao-sau-khi-chiem-tinh-gia-noi-tieng-19-trieu-follower-ly-hon-20250810140654261.chn → đừng bỏ lỡ người → tạo niềm tin kết nối)
-    Bước 2: Giới thiệu quà (kết nối → ấn tượng → không quá đắt nhưng đủ giá trị)
-
-    9. PRODUCT_RECOMMENDATIONS: 3 sản phẩm phù hợp với cặp đôi
-
-    Trả về JSON với keys: compatibility_tier, tier_description, zodiac_summary, personality_analysis, differences, strengths, life_benefits, work_benefits, love_benefits, advice, product_recommendations
-    
-    Viết bằng tiếng Việt, mỗi đoạn văn liền mạch, chi tiết và chuyên nghiệp theo CHÍNH XÁC instruction.
-    """
+    print(f"📝 Prompt length: {len(prompt)} characters")
 
     try:
         # Use OpenAI API first
         if OPENAI_API_KEY and OPENAI_API_KEY != 'your-openai-api-key-here':
+            print("🚀 ATTEMPTING OPENAI API CALL...")
+            
             headers = {
                 'Authorization': f'Bearer {OPENAI_API_KEY}',
                 'Content-Type': 'application/json'
             }
             
             data = {
-                'model': 'gpt-5',
+                'model': 'gpt-4o',
                 'messages': [{'role': 'user', 'content': prompt}],
-                'max_tokens': 4000,
-                'temperature': 0.7
+                'max_tokens': 4000,  # Giảm từ 8000 xuống 4000
+                'temperature': 0.7   # Giảm từ 0.8 xuống 0.7
             }
+            
+            print(f"📤 Request data: model={data['model']}, max_tokens={data['max_tokens']}")
+            print("📤 Sending request to OpenAI API...")
             
             response = requests.post(
                 'https://api.openai.com/v1/chat/completions',
@@ -514,78 +537,119 @@ def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horosc
                 timeout=60
             )
             
+            print(f"📨 OpenAI Response Status: {response.status_code}")
+            print(f"📨 Response Headers: {dict(list(response.headers.items())[:3])}")
+            
             if response.status_code == 200:
+                print("✅ OPENAI API CALL SUCCESSFUL - TOKENS CONSUMED")
                 result = response.json()
-                ai_response = result['choices'][0]['message']['content']
                 
-                # Clean up the response to extract JSON
+                print(f"📊 Usage info: {result.get('usage', {})}")
+                ai_response = result['choices'][0]['message']['content']
                 ai_response = ai_response.strip()
-                if ai_response.startswith('```json'):
+                
+                # Check if response starts with explanatory text
+                if ai_response.startswith('Dưới đây là phân tích') or ai_response.startswith('Đây là phân tích'):
+                    # Find the JSON part
+                    json_start = ai_response.find('```json')
+                    json_end = ai_response.find('```', json_start + 7)
+                    
+                    if json_start != -1 and json_end != -1:
+                        ai_response = ai_response[json_start + 7:json_end].strip()
+                    else:
+                        # Try to find JSON object directly
+                        json_start = ai_response.find('{')
+                        json_end = ai_response.rfind('}')
+                        if json_start != -1 and json_end != -1:
+                            ai_response = ai_response[json_start:json_end + 1].strip()
+                
+                elif ai_response.startswith('```json'):
                     ai_response = ai_response[7:-3].strip()
                 elif ai_response.startswith('```'):
                     ai_response = ai_response[3:-3].strip()
+                elif ai_response.startswith('{'):
+                    # Already JSON, no need to clean
+                    pass
+                else:
+                    # Try to extract JSON from text
+                    json_start = ai_response.find('{')
+                    json_end = ai_response.rfind('}')
+                    if json_start != -1 and json_end != -1:
+                        ai_response = ai_response[json_start:json_end + 1].strip()
+                
+                print(f"🧹 Cleaned response length: {len(ai_response)} characters")
+                print(f"🧹 Cleaned response preview: {ai_response[:150]}...")
+                
+                # Check if response is a refusal
+                if ai_response.startswith('Tôi xin lỗi') or ai_response.startswith('I\'m sorry') or len(ai_response) < 100:
+                    print("❌ OPENAI REFUSED TO COMPLETE REQUEST")
+                    print(f"Refusal message: {ai_response}")
+                    print("🔄 Using fallback analysis instead")
+                    return generate_fallback_analysis(person1_data, person2_data)
                 
                 try:
-                    return json.loads(ai_response)
-                except json.JSONDecodeError:
-                    print(f"Failed to parse OpenAI JSON response: {ai_response}")
-                    return generate_fallback_analysis(person1_data, person2_data)
+                    parsed_result = json.loads(ai_response)
+                    print("✅ SUCCESSFULLY PARSED OPENAI JSON RESPONSE")
+                    print(f"🎯 Response has {len(parsed_result)} sections")
+                    
+                    # Verify content length
+                    zodiac_len = len(parsed_result.get('zodiac_summary', ''))
+                    personality_len = len(parsed_result.get('personality_analysis', ''))
+                    print(f"📏 Content lengths: zodiac_summary={zodiac_len}, personality_analysis={personality_len}")
+                    
+                    print("🎉 RETURNING OPENAI RESULT - NOT FALLBACK")
+                    print("=== DEBUG AI ANALYSIS SUCCESS ===")
+                    return parsed_result
+                    
+                except json.JSONDecodeError as json_error:
+                    print(f"❌ FAILED TO PARSE OPENAI JSON: {json_error}")
+                    print(f"Raw response preview: {ai_response[:500]}...")
+                    
+                    # Try to fix common JSON issues
+                    try:
+                        # Remove any trailing commas
+                        fixed_response = ai_response.replace(',}', '}').replace(',]', ']')
+                        
+                        # Try parsing the fixed version
+                        parsed_result = json.loads(fixed_response)
+                        print("✅ SUCCESSFULLY PARSED FIXED JSON RESPONSE")
+                        return parsed_result
+                        
+                    except json.JSONDecodeError as second_error:
+                        print(f"❌ FAILED TO PARSE FIXED JSON: {second_error}")
+                        
+                        # Last resort: try to extract and reconstruct JSON manually
+                        try:
+                            # Save the raw response for manual parsing
+                            with open('debug_response.txt', 'w', encoding='utf-8') as f:
+                                f.write(f"Original response:\n{result['choices'][0]['message']['content']}\n\n")
+                                f.write(f"Cleaned response:\n{ai_response}")
+                            
+                            print("💾 Saved raw response to debug_response.txt for manual inspection")
+                            
+                        except Exception as save_error:
+                            print(f"Could not save debug file: {save_error}")
+                        
+                        print("🔄 Using fallback analysis instead")
+                        return generate_fallback_analysis(person1_data, person2_data)
             else:
-                print(f"OpenAI API error: {response.status_code}")
+                print(f"❌ OPENAI API FAILED: {response.status_code}")
+                print(f"❌ Error response: {response.text}")
+                print("🔄 Using fallback analysis instead")
                 return generate_fallback_analysis(person1_data, person2_data)
-        
-        # COMMENT OUT GEMINI FOR NOW - CAN UNCOMMENT LATER
-        # elif GEMINI_API_KEY and GEMINI_API_KEY != 'your-gemini-api-key-here':
-        #     headers = {
-        #         'Content-Type': 'application/json',
-        #         'X-goog-api-key': GEMINI_API_KEY
-        #     }
-        #     
-        #     data = {
-        #         'contents': [{
-        #             'parts': [{
-        #                 'text': prompt
-        #             }]
-        #         }],
-        #         'generationConfig': {
-        #             'temperature': 0.7,
-        #             'maxOutputTokens': 8192,
-        #         }
-        #     }
-        #     
-        #     response = requests.post(
-        #         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-        #         headers=headers,
-        #         json=data,
-        #         timeout=60
-        #     )
-        #     
-        #     if response.status_code == 200:
-        #         result = response.json()
-        #         if 'candidates' in result and len(result['candidates']) > 0:
-        #             ai_response = result['candidates'][0]['content']['parts'][0]['text']
-        #             ai_response = ai_response.strip()
-        #             if ai_response.startswith('```json'):
-        #                 ai_response = ai_response[7:-3].strip()
-        #             elif ai_response.startswith('```'):
-        #                 ai_response = ai_response[3:-3].strip()
-        #             
-        #             try:
-        #                 return json.loads(ai_response)
-        #             except json.JSONDecodeError:
-        #                 print(f"Failed to parse Gemini JSON response: {ai_response}")
-        #                 return generate_fallback_analysis(person1_data, person2_data)
-        #     else:
-        #         print(f"Gemini API error: {response.status_code}")
-        #         return generate_fallback_analysis(person1_data, person2_data)
-        
-        # Fallback analysis if no AI API is available
-        return generate_fallback_analysis(person1_data, person2_data)
+        else:
+            print("❌ NO VALID OPENAI API KEY FOUND")
+            print(f"❌ Key exists: {bool(OPENAI_API_KEY)}")
+            print(f"❌ Key is placeholder: {OPENAI_API_KEY == 'your-openai-api-key-here' if OPENAI_API_KEY else 'No key'}")
+            print("🔄 Using fallback analysis")
+            return generate_fallback_analysis(person1_data, person2_data)
         
     except Exception as e:
-        print(f"Error in AI analysis: {e}")
+        print(f"❌ OPENAI API EXCEPTION: {e}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
+        print("🔄 Using fallback analysis instead")
         return generate_fallback_analysis(person1_data, person2_data)
-
 def generate_fallback_analysis(person1_data, person2_data):
     """Generate fallback analysis without AI using instruction format"""
     
