@@ -523,8 +523,9 @@ def analyze_compatibility_with_ai(person1_data, person2_data, horoscope1, horosc
             data = {
                 'model': 'gpt-4o',
                 'messages': [{'role': 'user', 'content': prompt}],
-                'max_tokens': 4000,  # Giảm từ 8000 xuống 4000
-                'temperature': 0.7   # Giảm từ 0.8 xuống 0.7
+                'max_tokens': 1500,  # Giảm xuống 1500 để tiết kiệm memory
+                'temperature': 0.7,   # Giảm từ 0.8 xuống 0.7
+                'timeout': 30
             }
             
             print(f"📤 Request data: model={data['model']}, max_tokens={data['max_tokens']}")
